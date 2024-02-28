@@ -9,4 +9,3 @@ db_ops = DatabaseOperations()
 rs = db_ops.install_pgvector(database.get_engine())
 print(rs)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
