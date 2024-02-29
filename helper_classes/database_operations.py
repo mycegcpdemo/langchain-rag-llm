@@ -11,7 +11,6 @@ from sqlalchemy.orm import sessionmaker
 
 from helper_classes.database import Database
 
-
 class DatabaseOperations:
     load_dotenv()
     db_user = os.getenv('DB_USER')
@@ -54,7 +53,7 @@ class DatabaseOperations:
     # Need to use session manager to perform truncate.
     def delete_table(self, engine):
         try:
-            query = text('''TRUNCATE TABLE products''')
+            query = text('''TRUNCATE senior_services''')
             sess = sessionmaker(bind=engine)
             session = sess()
             session.execute(query)
@@ -75,3 +74,9 @@ class DatabaseOperations:
             return "PGVector extension installed"
         except Exception as e:
             logging.error(f"Recieved Error: {e}")
+
+
+db = Database()
+db_ops = DatabaseOperations()
+eng = db.get_engine()
+print(db_ops.list_tables(engine=eng))
