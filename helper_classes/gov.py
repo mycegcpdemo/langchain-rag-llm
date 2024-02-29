@@ -31,7 +31,7 @@ table_name = "senior_services_1"
 
 # Load model
 model = VertexAI(model_name="gemini-pro")
-
+model.temperature = 0.5
 
 #Load csv dataset file
 loader = PyPDFLoader(file_path=os.getenv("SENIOR_SERVICES"))
@@ -92,7 +92,7 @@ chain = (
     | StrOutputParser()
 )
 
-result = chain.invoke("what is '''Travelling in Ontario'''?")
+result = chain.invoke("what is the phone number of '''ontario travel'''?")
 
 print(result.__str__())
 
