@@ -9,7 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.memory import ConversationBufferWindowMemory
-
+from langchain.memory import ConversationSummaryBufferMemory
 import gradio as gr
 
 
@@ -90,14 +90,14 @@ chain = (
         | StrOutputParser()
 )
 
-result = chain.invoke("what do you know about dental care?")
+# result = chain.invoke("what do you know about dental care?")
+#
+# print(result)
 
-print(result)
 
 
-
-mem = ConversationBufferWindowMemory(k=4)
-
+mem = ConversationBufferWindowMemory(k=10)
+memory = ConversationSummaryBufferMemory(llm=model, max_token_limit=300)
 from langchain.chains import RetrievalQA
 #
 conversation = RetrievalQA.from_chain_type(
@@ -108,14 +108,21 @@ conversation = RetrievalQA.from_chain_type(
     verbose=False,
 
 )
-result1 = conversation.invoke("what do you know about dental care?")
 
-print(result1)
+def chat(message, history):
+    print(history)
+    print("\n")
+    conversation = RetrievalQA.from_chain_type(
+        llm=model,
+        chain_type="stuff",
+        retriever=retriever,
+        memory=memory,
+        verbose=False,
+    )
+    print("\n this what is inside memory:")
+    print(memory.load_memory_variables({}))
+    print("\n end of what is inside memory:")
+    result = conversation.invoke(message)
+    return str(result["result"])
 
-result2 = conversation.invoke("tell me more about the second service in the list you give me?")
-
-print(result2)
-
-result3 = conversation.invoke("tell me more about the third service in the list you give me?")
-
-print(result3)
+gr.ChatInterface(chat).launch()
