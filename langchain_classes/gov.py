@@ -4,14 +4,13 @@ from langchain_community.vectorstores.pgvector import PGVector
 from dotenv import load_dotenv
 from langchain_google_vertexai import VertexAI
 import os
-
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
+from langchain.memory import ConversationBufferWindowMemory
 
-
+import gradio as gr
 
 
 load_dotenv()
@@ -30,10 +29,10 @@ project_id = os.getenv('PROJECT')
 table_name = "senior_services_1"
 
 # Load model
-model = VertexAI(model_name="gemini-pro")
+model = VertexAI(model_name="gemini-pro-vision")
 model.temperature = 1
 
-#Load csv dataset file
+# Load csv dataset file
 loader = PyPDFLoader(file_path=os.getenv("SENIOR_SERVICES"))
 
 # text_splitter = RecursiveCharacterTextSplitter(
@@ -51,7 +50,6 @@ embedding = VertexAIEmbeddings(
 )
 
 COLLECTION_NAME = table_name
-
 
 db = PGVector(
     embedding_function=embedding,
@@ -76,7 +74,7 @@ db = PGVector(
 #     print(doc.page_content)
 #     print("-" * 80)
 
-retriever = db.as_retriever()
+retriever = db.as_retriever(k=4)
 
 template = """Answer the question based only on the following context:
 {context}
@@ -86,13 +84,38 @@ Question: {question}
 prompt = ChatPromptTemplate.from_template(template)
 
 chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | prompt
-    | model
-    | StrOutputParser()
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt
+        | model
+        | StrOutputParser()
 )
 
 result = chain.invoke("what do you know about dental care?")
 
-print(result.__str__())
+print(result)
 
+
+
+mem = ConversationBufferWindowMemory(k=4)
+
+from langchain.chains import RetrievalQA
+#
+conversation = RetrievalQA.from_chain_type(
+    llm=model,
+    chain_type="stuff",
+    retriever=retriever,
+    memory=mem,
+    verbose=False,
+
+)
+result1 = conversation.invoke("what do you know about dental care?")
+
+print(result1)
+
+result2 = conversation.invoke("tell me more about the second service in the list you give me?")
+
+print(result2)
+
+result3 = conversation.invoke("tell me more about the third service in the list you give me?")
+
+print(result3)
