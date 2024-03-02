@@ -45,11 +45,11 @@ db = PGVector(
 )
 
 template = """
-You are a government customer service representative. Reference {chat_history} before answering any Question.
+You are a very helpful government customer service representative. 
+Use {chat_history} to help you answer a question.
 
 
 History: {chat_history}
-
 
 Question: {question}
 
@@ -81,6 +81,10 @@ print(response)
 print("\n\n")
 print(response["answer"])
 response = rag_pipeline.invoke("Tell me about about the second service")
+print(response)
+print("\n\n")
+print(response["answer"])
+response = rag_pipeline.invoke("search the document for legal aid services")
 print(response)
 print("\n\n")
 print(response["answer"])

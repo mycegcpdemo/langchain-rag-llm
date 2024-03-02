@@ -46,6 +46,7 @@ def chatbot(message, history):
         get_chat_history=lambda h: h,
     )
     response = chain.invoke(message)
-    response["answer"]
+    return response["answer"]
+
 
 gr.ChatInterface(chatbot).launch()
