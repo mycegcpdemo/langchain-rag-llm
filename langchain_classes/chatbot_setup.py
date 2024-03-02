@@ -75,3 +75,6 @@ class ChatbotSetUp:
 
     def get_memory(self):
         return self.chat_history
+
+    def get_prompt(self):
+        return self.PROMPT
