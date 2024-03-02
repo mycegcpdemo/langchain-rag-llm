@@ -1,3 +1,5 @@
+from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import PromptTemplate
 import os
 
 from dotenv import load_dotenv
@@ -10,7 +12,6 @@ from langchain.chains import ConversationalRetrievalChain
 
 
 load_dotenv()
-
 
 # Get env variables
 db_host = os.getenv('DB_HOST')
@@ -34,10 +35,7 @@ embedding = VertexAIEmbeddings(
     model_name="textembedding-gecko@latest", project=project_id
 )
 
-memory = ConversationBufferMemory(
-    memory_key='chat_history',
-    return_messages=False
-)
+memory = ConversationBufferMemory()
 
 COLLECTION_NAME = table_name
 
@@ -47,11 +45,42 @@ db = PGVector(
     connection_string=engine_url,
 )
 
-qa = ConversationalRetrievalChain.from_llm(
-        llm=model
-        chain_type='stuff',
-        retriever=db.as_retriever(),
-        memory=memory,
-        get_chat_history=lambda h: h,
-        verbose=True
-    )
+template = """
+You help everyone by answering questions, and improve your answers from previous answers in History.
+
+History: {chat_history}
+
+Context: {context}
+
+Question: {question}
+Answer: 
+"""
+
+PROMPT = PromptTemplate(
+    template=template,
+    input_variables=["chat_history", "context", "question"]
+)
+
+chat_history = ConversationBufferMemory(output_key='answer', context_key='context',
+                                        memory_key='chat_history', return_messages=True)
+
+rag_pipeline = ConversationalRetrievalChain.from_llm(
+    llm=model,
+    chain_type="stuff",
+    retriever=db.as_retriever(),
+    condense_question_prompt=PROMPT,
+    verbose=False,
+    return_source_documents=True,
+    memory=chat_history,
+    get_chat_history=lambda h: h,
+)
+
+
+query = "list five services"
+result = db.similarity_search("SELECT *")
+docs_with_score = db.similarity_search_with_score(query)
+for doc, score in docs_with_score:
+    print("-" * 80)
+    print("Score: ", score)
+    print(doc.page_content)
+    print("-" * 80)

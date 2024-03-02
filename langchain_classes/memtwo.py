@@ -1,3 +1,5 @@
+from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import PromptTemplate
 import os
 
 from dotenv import load_dotenv
@@ -8,9 +10,7 @@ from langchain_google_vertexai import VertexAIEmbeddings
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain.chains import ConversationalRetrievalChain
 
-
 load_dotenv()
-
 
 # Get env variables
 db_host = os.getenv('DB_HOST')
@@ -34,10 +34,7 @@ embedding = VertexAIEmbeddings(
     model_name="textembedding-gecko@latest", project=project_id
 )
 
-memory = ConversationBufferMemory(
-    memory_key='chat_history',
-    return_messages=False
-)
+memory = ConversationBufferMemory()
 
 COLLECTION_NAME = table_name
 
@@ -47,11 +44,43 @@ db = PGVector(
     connection_string=engine_url,
 )
 
-qa = ConversationalRetrievalChain.from_llm(
-        llm=model
-        chain_type='stuff',
-        retriever=db.as_retriever(),
-        memory=memory,
-        get_chat_history=lambda h: h,
-        verbose=True
-    )
+template = """
+You are a government customer service representative. Reference {chat_history} before answering any Question.
+
+
+History: {chat_history}
+
+
+Question: {question}
+
+Answer: 
+"""
+
+PROMPT = PromptTemplate(
+    template=template,
+    input_variables=["chat_history", "question"]
+)
+
+chat_history = ConversationBufferMemory(output_key='answer', context_key='context',
+                                        memory_key='chat_history', return_messages=True)
+
+rag_pipeline = ConversationalRetrievalChain.from_llm(
+    llm=model,
+    chain_type="stuff",
+    retriever=db.as_retriever(),
+    condense_question_prompt=PROMPT,
+    verbose=False,
+    return_source_documents=False,
+    memory=chat_history,
+    get_chat_history=lambda h: h,
+)
+
+retriever = db.as_retriever()
+response = rag_pipeline.invoke("List 2 services")
+print(response)
+print("\n\n")
+print(response["answer"])
+response = rag_pipeline.invoke("Tell me about about the second service")
+print(response)
+print("\n\n")
+print(response["answer"])

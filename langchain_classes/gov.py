@@ -8,10 +8,9 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.memory import ConversationBufferWindowMemory
+from langchain.memory import ConversationBufferWindowMemory, ConversationBufferMemory
 from langchain.memory import ConversationSummaryBufferMemory
 import gradio as gr
-
 
 load_dotenv()
 
@@ -30,7 +29,7 @@ table_name = "senior_services_1"
 
 # Load model
 model = VertexAI(model_name="gemini-pro-vision")
-model.temperature = 1
+model.temperature = 0
 
 # Load csv dataset file
 loader = PyPDFLoader(file_path=os.getenv("SENIOR_SERVICES"))
@@ -51,30 +50,30 @@ embedding = VertexAIEmbeddings(
 
 COLLECTION_NAME = table_name
 
-db = PGVector(
-    embedding_function=embedding,
-    collection_name=COLLECTION_NAME,
-    connection_string=engine_url,
-)
-
-# # Needed to load the database
-# db = PGVector.from_documents(
-#     embedding=embedding,
-#     documents=docs,
+# db = PGVector(
+#     embedding_function=embedding,
 #     collection_name=COLLECTION_NAME,
 #     connection_string=engine_url,
 # )
 
-# db.as_retriever()
-# query = "what columns are in the table?"
-# docs_with_score = db.similarity_search_with_score(query)
-# for doc, score in docs_with_score:
-#     print("-" * 80)
-#     print("Score: ", score)
-#     print(doc.page_content)
-#     print("-" * 80)
+# Needed to load the database
+db = PGVector.from_documents(
+    embedding=embedding,
+    documents=docs,
+    collection_name=COLLECTION_NAME,
+    connection_string=engine_url,
+)
 
-retriever = db.as_retriever(k=4)
+db.as_retriever()
+query = "what columns are in the table?"
+docs_with_score = db.similarity_search_with_score(query)
+for doc, score in docs_with_score:
+    print("-" * 80)
+    print("Score: ", score)
+    print(doc.page_content)
+    print("-" * 80)
+
+retriever = db.as_retriever()
 
 template = """Answer the question based only on the following context:
 {context}
@@ -83,46 +82,61 @@ Question: {question}
 """
 prompt = ChatPromptTemplate.from_template(template)
 
-chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
-        | prompt
-        | model
-        | StrOutputParser()
-)
-
-# result = chain.invoke("what do you know about dental care?")
+# chain = (
+#         {"context": retriever, "question": RunnablePassthrough()}
+#         | prompt
+#         | model
+#         | StrOutputParser()
+# )
 #
-# print(result)
+# result = chain.invoke("what do you know about dental care?")
 
+# print(result)
 
 
 mem = ConversationBufferWindowMemory(k=10)
 memory = ConversationSummaryBufferMemory(llm=model, max_token_limit=300)
-from langchain.chains import RetrievalQA
+from langchain.chains import RetrievalQA, ConversationalRetrievalChain
+
+
 #
-conversation = RetrievalQA.from_chain_type(
-    llm=model,
-    chain_type="stuff",
-    retriever=retriever,
-    memory=mem,
-    verbose=False,
+# conversation = RetrievalQA.from_chain_type(
+#     llm=model,
+#     chain_type="stuff",
+#     retriever=retriever,
+#     memory=mem,
+#     verbose=False,
+#
+# )
 
-)
-
-def chat(message, history):
-    print(history)
-    print("\n")
-    conversation = RetrievalQA.from_chain_type(
+def chat(message):
+    # print(f'\nthis is the message : {message}\n')
+    # print(f'\nthis is the history : {history}\n')
+    conversation = ConversationalRetrievalChain.from_llm(
         llm=model,
         chain_type="stuff",
         retriever=retriever,
-        memory=memory,
-        verbose=False,
+        memory=mem,
+        verbose=True,
     )
-    print("\n this what is inside memory:")
-    print(memory.load_memory_variables({}))
-    print("\n end of what is inside memory:")
+    # print("\n this what is inside memory:")
+    # print(memory.load_memory_variables({}))
+    # print("\n end of what is inside memory:")
     result = conversation.invoke(message)
+    # print(f'\nthis is the entire  result string {result} \n')
+    # print(f'\nthis is the result portion of the result string {result["result"]} \n')
+    # mem.load_memory_variables(result["history"])
     return str(result["result"])
 
-gr.ChatInterface(chat).launch()
+
+# gr.ChatInterface(chat).launch()
+
+print(chat("list 5 services?"))
+print(mem.buffer)
+print(chat("tell me more about the second service"))
+print(mem.load_memory_variables({}))
+mem.save_context({"input":"my name is ron"},{"output":"hello ron"})
+print(mem.buffer)
+print(mem.load_memory_variables({}))
+print(chat("what is my name?"))
+
