@@ -48,10 +48,11 @@ def chatbot(message, history):
     response = chain.invoke(message)
     return response["answer"]
 
-result = chatbot("list 3 services","history")
-print(result)
-result1 = chatbot("what is the second item in the list","history")
+result1 = chatbot("list 3 services","history")
 print(result1)
-result1 = chatbot("what is the first item in the list","history")
-print(result1)
+result2 = chatbot("what is the second item in the list","history")
+print(result2)
+result3 = chatbot("what is the first item in the list","history")
+print(result3)
+
 # gr.ChatInterface(chatbot).launch()
