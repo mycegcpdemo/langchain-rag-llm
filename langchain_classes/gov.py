@@ -82,14 +82,14 @@ Question: {question}
 """
 prompt = ChatPromptTemplate.from_template(template)
 
-# chain = (
-#         {"context": retriever, "question": RunnablePassthrough()}
-#         | prompt
-#         | model
-#         | StrOutputParser()
-# )
-#
-# result = chain.invoke("what do you know about dental care?")
+chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt
+        | model
+        | StrOutputParser()
+)
+
+result = chain.invoke("what do you know about dental care?")
 
 # print(result)
 
@@ -98,16 +98,18 @@ mem = ConversationBufferWindowMemory(k=10)
 memory = ConversationSummaryBufferMemory(llm=model, max_token_limit=300)
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 
+chat_history = ConversationBufferMemory(output_key='answer', context_key='context',
+                                        memory_key='chat_history', return_messages=True)
 
 #
-# conversation = RetrievalQA.from_chain_type(
-#     llm=model,
-#     chain_type="stuff",
-#     retriever=retriever,
-#     memory=mem,
-#     verbose=False,
-#
-# )
+chat = RetrievalQA.from_chain_type(
+    llm=model,
+    chain_type="stuff",
+    retriever=retriever,
+    memory=mem,
+    verbose=False,
+
+)
 
 def chat(message):
     # print(f'\nthis is the message : {message}\n')

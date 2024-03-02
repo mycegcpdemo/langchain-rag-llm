@@ -80,7 +80,11 @@ class ChatbotSetUp:
         return self.PROMPT
 
     mem = ConversationBufferWindowMemory(k=5,memory_key='chat_history')
-    mem2 = ConversationSummaryBufferMemory(llm=model, max_token_limit=300,memory_key='chat_history')
+    mem2 = ConversationSummaryBufferMemory(
+        llm=model,
+        memory_key='chat_history',
+        return_messages=True
+    )
 
     def get_mem(self):
         return self.mem2
