@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory, ConversationSummaryBufferMemory
 from langchain_community.vectorstores.pgvector import PGVector
 from langchain_google_vertexai import VertexAI
 from langchain_google_vertexai import VertexAIEmbeddings
@@ -78,3 +78,9 @@ class ChatbotSetUp:
 
     def get_prompt(self):
         return self.PROMPT
+
+    mem = ConversationBufferWindowMemory(k=5,memory_key='chat_history')
+    mem2 = ConversationSummaryBufferMemory(llm=model, max_token_limit=300,memory_key='chat_history')
+
+    def get_mem(self):
+        return self.mem2

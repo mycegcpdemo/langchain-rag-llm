@@ -45,9 +45,7 @@ db = PGVector(
 )
 
 template = """
-You are a very helpful government customer service representative. 
-Use {chat_history} to help you answer a question.
-
+Use {chat_history} to help you answer the questions. 
 
 History: {chat_history}
 
@@ -84,7 +82,7 @@ response = rag_pipeline.invoke("Tell me about about the second service")
 print(response)
 print("\n\n")
 print(response["answer"])
-response = rag_pipeline.invoke("search the document for legal aid services")
+response = rag_pipeline.invoke("what is legal aid services?")
 print(response)
 print("\n\n")
 print(response["answer"])

@@ -23,30 +23,33 @@ chatbot_vars = ChatbotSetUp()
 
 
 # Create chatbot
-# def chatbot(message, history):
-#     response = ConversationalRetrievalChain.from_llm(
-#         llm=chatbot_vars.get_model(),
-#         retriever=chatbot_vars.get_retriever(),
-#         memory=chatbot_vars.get_memory(),
-#         verbose=True
-#     )
-#     result = response.invoke(message)
-#     print(f'\n\n{result}\n\n')
-#     return (result["answer"])
-
 def chatbot(message, history):
-    chain = ConversationalRetrievalChain.from_llm(
+    response = ConversationalRetrievalChain.from_llm(
         llm=chatbot_vars.get_model(),
-        chain_type="stuff",
         retriever=chatbot_vars.get_retriever(),
-        condense_question_prompt=chatbot_vars.get_prompt(),
-        verbose=False,
-        return_source_documents=False,
-        memory=chatbot_vars.get_memory(),
-        get_chat_history=lambda h: h,
+        memory=chatbot_vars.get_mem(),
+        verbose=True
     )
-    response = chain.invoke(message)
-    return response["answer"]
+    result = response.invoke(message)
+    print(f'\n\n{result}\n\n')
+    return (result["answer"])
 
+# def chatbot(message, history):
+#     chain = ConversationalRetrievalChain.from_llm(
+#         llm=chatbot_vars.get_model(),
+#         chain_type="stuff",
+#         retriever=chatbot_vars.get_retriever(),
+#         condense_question_prompt=chatbot_vars.get_prompt(),
+#         verbose=False,
+#         return_source_documents=False,
+#         memory=chatbot_vars.get_memory(),
+#         get_chat_history=lambda h: h,
+#     )
+#     response = chain.invoke(message)
+#     return response["answer"]
 
-gr.ChatInterface(chatbot).launch()
+result = chatbot("list 5 services","history")
+print(result)
+result1 = chatbot("tell me more about the second item in the list","history")
+print(result1)
+# gr.ChatInterface(chatbot).launch()
