@@ -53,7 +53,7 @@ class DatabaseOperations:
     # Need to use session manager to perform truncate.
     def delete_table(self, engine):
         try:
-            query = text('''TRUNCATE senior_services''')
+            query = text('''TRUNCATE senior_services_1''')
             sess = sessionmaker(bind=engine)
             session = sess()
             session.execute(query)
@@ -75,8 +75,3 @@ class DatabaseOperations:
         except Exception as e:
             logging.error(f"Recieved Error: {e}")
 
-
-db = Database()
-db_ops = DatabaseOperations()
-eng = db.get_engine()
-print(db_ops.list_tables(engine=eng))

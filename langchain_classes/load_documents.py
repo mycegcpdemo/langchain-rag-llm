@@ -19,7 +19,7 @@ class LoadDocument:
     project_id = os.getenv('PROJECT')
 
     # Declare additional variables
-    table_name = "senior_services_2"
+    table_name = "senior_services_1"
 
     # Load model
     model = VertexAI(model_name="gemini-pro-vision")
@@ -56,3 +56,4 @@ class LoadDocument:
             result = self.db.similarity_search("SELECT 1")
         except Exception as e:
             f"Database creation failed: {e}"
+

@@ -21,17 +21,6 @@ load_vector_store.create_vectorstore()
 chatbot_vars = ChatbotSetUp()
 
 
-# Create chatbot
-# def chatbot(message, history):
-#     response = ConversationalRetrievalChain.from_llm(
-#         llm=chatbot_vars.get_model(),
-#         retriever=chatbot_vars.get_retriever(),
-#         memory=chatbot_vars.get_mem(),
-#         verbose=False
-#     )
-#     result = response.invoke(message)
-#     print(f'\n\n{chatbot_vars.get_mem().buffer}\n\n')
-#     return (result["answer"])
 
 def chatbot(message, history):
     chain = ConversationalRetrievalChain.from_llm(
@@ -47,12 +36,10 @@ def chatbot(message, history):
     response = chain.invoke(message)
     return response["answer"]
 
-result1 = chatbot("list 3 services","history")
-print(result1)
-result2 = chatbot("what is the second item in the list","history")
-print(result2)
-result3 = chatbot("what is the first item in the list","history")
-print(result3)
+# result1 = chatbot("list all services","history")
+# print(result1)
+# result2 = chatbot("I need legal help","history")
+# print(result2)
 
-# gr.ChatInterface(chatbot).launch()
+gr.ChatInterface(chatbot).launch()
 
