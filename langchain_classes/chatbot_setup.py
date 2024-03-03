@@ -48,9 +48,7 @@ class ChatbotSetUp:
 
     # Create template
     template = """
-    You are a government customer service representative. Reference {chat_history} before answering any Question.
- 
-    History: {chat_history}  
+    You are a government customer service representative. 
     
     Question: {question}
     

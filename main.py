@@ -5,18 +5,17 @@ from langchain_classes.chatbot_setup import ChatbotSetUp
 import gradio as gr
 from langchain.chains import ConversationalRetrievalChain
 
-
 # Install PGVector on PostgreSQL server if not already install.
 # Only run once during first setup
-# database = Database()
-# engine = database.get_engine()
-# db_ops = DatabaseOperations()
-# db_ops.install_pgvector(engine)
+database = Database()
+engine = database.get_engine()
+db_ops = DatabaseOperations()
+db_ops.install_pgvector(engine)
 
 # Load Catalog of government services into vector store and get back database object
 # Only run once during first setup
-# load_vector_store = LoadDocument()
-# load_vector_store.create_vectorstore()
+load_vector_store = LoadDocument()
+load_vector_store.create_vectorstore()
 
 # Get Chatbot variables from ChatbotSetUp
 chatbot_vars = ChatbotSetUp()
@@ -56,3 +55,4 @@ result3 = chatbot("what is the first item in the list","history")
 print(result3)
 
 # gr.ChatInterface(chatbot).launch()
+
